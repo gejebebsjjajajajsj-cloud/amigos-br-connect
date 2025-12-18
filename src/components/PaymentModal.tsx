@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { Copy, CheckCircle, Loader2, QrCode } from 'lucide-react';
+import { Copy, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -19,7 +20,6 @@ const PaymentModal = ({ isOpen, onClose, price, productName }: PaymentModalProps
   const [copied, setCopied] = useState(false);
   const [paymentData, setPaymentData] = useState<{
     paymentCode: string;
-    paymentCodeBase64: string;
     transactionId: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,12 +36,8 @@ const PaymentModal = ({ isOpen, onClose, price, productName }: PaymentModalProps
 
     try {
       const { data, error } = await supabase.functions.invoke('create-pix-payment', {
-        body: {
-          amount: price,
-        },
+        body: { amount: price },
       });
-
-      console.log('Payment response:', data);
 
       if (error) throw error;
       if (!data.success) throw new Error(data.error);
@@ -52,7 +48,6 @@ const PaymentModal = ({ isOpen, onClose, price, productName }: PaymentModalProps
 
       setPaymentData({
         paymentCode: data.paymentCode,
-        paymentCodeBase64: data.paymentCodeBase64,
         transactionId: data.transactionId,
       });
       toast.success('Pagamento PIX gerado!');
@@ -115,18 +110,16 @@ const PaymentModal = ({ isOpen, onClose, price, productName }: PaymentModalProps
 
           {paymentData && !loading && (
             <>
-              {/* QR Code */}
-              {paymentData.paymentCodeBase64 && (
-                <div className="flex justify-center">
-                  <div className="bg-white p-4 rounded-lg">
-                    <img
-                      src={`data:image/png;base64,${paymentData.paymentCodeBase64}`}
-                      alt="QR Code PIX"
-                      className="w-48 h-48"
-                    />
-                  </div>
+              {/* QR Code generated from payment code */}
+              <div className="flex justify-center">
+                <div className="bg-white p-4 rounded-lg">
+                  <QRCodeSVG 
+                    value={paymentData.paymentCode} 
+                    size={200}
+                    level="M"
+                  />
                 </div>
-              )}
+              </div>
 
               {/* PIX Code */}
               <div className="space-y-2">
