@@ -73,7 +73,7 @@ const Index = () => {
           Grupos Disponíveis
         </h2>
         
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-2xl mx-auto">
+        <div className="flex flex-col gap-3 max-w-sm mx-auto">
           {groups.map((group, index) => (
             <GroupCard
               key={index}
