@@ -87,6 +87,8 @@ const Admin = () => {
 
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // reset input so selecting the same file again triggers onChange
+    e.target.value = '';
     if (!file || !profile) return;
 
     setUploadingBanner(true);
@@ -100,14 +102,16 @@ const Admin = () => {
       if (error) throw error;
       setProfile({ ...profile, banner_url: url });
       toast.success('Banner atualizado!');
-    } catch {
-      toast.error('Erro ao fazer upload');
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao fazer upload do banner');
+    } finally {
+      setUploadingBanner(false);
     }
-    setUploadingBanner(false);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file || !profile) return;
 
     setUploadingAvatar(true);
@@ -121,10 +125,11 @@ const Admin = () => {
       if (error) throw error;
       setProfile({ ...profile, avatar_url: url });
       toast.success('Foto de perfil atualizada!');
-    } catch {
-      toast.error('Erro ao fazer upload');
+    } catch (err: any) {
+      toast.error(err?.message || 'Erro ao fazer upload da foto');
+    } finally {
+      setUploadingAvatar(false);
     }
-    setUploadingAvatar(false);
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'video') => {
@@ -224,20 +229,38 @@ const Admin = () => {
       <main className="max-w-2xl mx-auto p-4 space-y-8">
         {/* Banner Upload */}
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-foreground">Banner</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-foreground">Banner</h2>
+            <label>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleBannerUpload}
+                disabled={uploadingBanner}
+              />
+              <Button variant="outline" size="sm" asChild>
+                <span className="cursor-pointer inline-flex items-center">
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploadingBanner ? 'Enviando...' : 'Trocar banner'}
+                </span>
+              </Button>
+            </label>
+          </div>
+
           <div className="relative h-40 bg-card rounded-xl overflow-hidden border border-border">
             {profile?.banner_url ? (
-              <img src={profile.banner_url} alt="Banner" className="w-full h-full object-cover" />
+              <img src={profile.banner_url} alt="Banner do clube" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                 Sem banner
               </div>
             )}
-            <label className="absolute inset-0 flex items-center justify-center bg-background/50 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-              <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} disabled={uploadingBanner} />
-              <Upload className="w-6 h-6 text-foreground" />
-            </label>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            Se der erro, tente uma imagem menor (ex: JPG/PNG).
+          </p>
         </section>
 
         {/* Avatar Upload */}
