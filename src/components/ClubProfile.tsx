@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Lock, Play } from 'lucide-react';
+import { Lock, Play, Sparkles } from 'lucide-react';
 
 const ClubProfile = () => {
   return (
@@ -11,14 +11,14 @@ const ClubProfile = () => {
           alt="Banner"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
       </div>
 
       {/* Profile Section */}
       <div className="max-w-lg mx-auto px-4 -mt-16 relative z-10 pb-8">
         {/* Avatar */}
         <div className="flex flex-col items-center">
-          <div className="w-28 h-28 rounded-full border-4 border-background overflow-hidden shadow-2xl">
+          <div className="w-28 h-28 rounded-full border-4 border-primary overflow-hidden shadow-2xl ring-4 ring-primary/20">
             <img 
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" 
               alt="Profile"
@@ -48,10 +48,13 @@ const ClubProfile = () => {
 
         {/* Purchase Button */}
         <div className="mt-6">
-          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-6 text-base">
-            <Lock className="w-4 h-4 mr-2" />
-            Desbloquear - R$ 29,90/mês
-          </Button>
+          <button className="w-full relative group overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-orange-400 p-[2px] transition-all hover:scale-[1.02] active:scale-[0.98]">
+            <div className="relative flex items-center justify-center gap-2 rounded-2xl bg-background px-6 py-4 transition-all group-hover:bg-background/80">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <span className="font-bold text-foreground">Desbloquear</span>
+              <span className="text-primary font-bold">R$ 29,90</span>
+            </div>
+          </button>
         </div>
 
         {/* Preview Gallery */}
