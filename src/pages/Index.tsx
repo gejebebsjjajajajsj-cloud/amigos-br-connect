@@ -39,13 +39,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header Panel */}
-      <section className="container mx-auto px-4 py-4">
-        <div className="header-panel max-w-sm mx-auto">
-          <h1 className="text-xl font-bold text-center text-foreground mb-3">
+      <section className="px-3 py-4 sm:px-4">
+        <div className="header-panel w-full max-w-md mx-auto">
+          <h1 className="text-lg sm:text-xl font-bold text-center text-foreground mb-3">
             🇧🇷 Amigos BR
           </h1>
           
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <div className="stats-badge">
               <Users className="w-4 h-4 text-primary" />
               <span>20.458 inscritos</span>
@@ -67,12 +67,12 @@ const Index = () => {
       </section>
 
       {/* Groups Section */}
-      <main className="container mx-auto px-4 pb-8">
-        <h2 className="text-base font-semibold text-foreground mb-4 text-center">
+      <main className="px-3 pb-8 sm:px-4">
+        <h2 className="text-sm sm:text-base font-semibold text-foreground mb-4 text-center">
           Grupos Disponíveis
         </h2>
         
-        <div className="flex flex-col gap-3 max-w-sm mx-auto">
+        <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
           {groups.map((group, index) => (
             <GroupCard
               key={index}
