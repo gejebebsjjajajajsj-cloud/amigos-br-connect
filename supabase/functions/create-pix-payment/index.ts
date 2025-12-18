@@ -7,10 +7,6 @@ const corsHeaders = {
 
 interface PaymentRequest {
   amount: number;
-  customerName: string;
-  customerEmail: string;
-  customerCpf: string;
-  customerPhone: string;
 }
 
 serve(async (req) => {
@@ -28,7 +24,7 @@ serve(async (req) => {
       throw new Error('Payment service not configured');
     }
 
-    const { amount, customerName, customerEmail, customerCpf, customerPhone }: PaymentRequest = await req.json();
+    const { amount }: PaymentRequest = await req.json();
 
     // Validate minimum amount
     if (amount < 1) {
@@ -61,62 +57,65 @@ serve(async (req) => {
     console.log('Authentication successful, creating payment...');
 
     // Step 2: Create PIX payment
+    const paymentBody = {
+      ip: '127.0.0.1',
+      pix: {
+        expiresInDays: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      },
+      items: [
+        {
+          title: 'Acesso VIP - Conteúdo Exclusivo',
+          quantity: 1,
+          tangible: false,
+          unitPrice: amount,
+        },
+      ],
+      amount: amount,
+      customer: {
+        cpf: '00000000000',
+        name: 'Cliente',
+        email: 'cliente@email.com',
+        phone: '11999999999',
+        externaRef: `club_${Date.now()}`,
+        address: {
+          city: 'São Paulo',
+          state: 'SP',
+          street: 'Rua Principal',
+          country: 'BR',
+          zipCode: '01000-000',
+          complement: '',
+          neighborhood: 'Centro',
+          streetNumber: '1',
+        },
+      },
+      metadata: {
+        provider: 'ClubSystem',
+      },
+      traceable: true,
+    };
+
+    console.log('Payment request body:', JSON.stringify(paymentBody));
+
     const paymentResponse = await fetch('https://api.syncpayments.com.br/v1/gateway/api', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ip: '127.0.0.1',
-        pix: {
-          expiresInDays: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        },
-        items: [
-          {
-            title: 'Acesso VIP - Conteúdo Exclusivo',
-            quantity: 1,
-            tangible: false,
-            unitPrice: amount,
-          },
-        ],
-        amount: amount,
-        customer: {
-          cpf: customerCpf.replace(/\D/g, ''),
-          name: customerName,
-          email: customerEmail,
-          phone: customerPhone.replace(/\D/g, ''),
-          externaRef: `club_${Date.now()}`,
-          address: {
-            city: 'São Paulo',
-            state: 'SP',
-            street: 'Rua Principal',
-            country: 'BR',
-            zipCode: '01000-000',
-            complement: '',
-            neighborhood: 'Centro',
-            streetNumber: '1',
-          },
-        },
-        metadata: {
-          provider: 'ClubSystem',
-          sell_url: 'https://club.example.com',
-          order_url: 'https://club.example.com/order',
-          user_email: customerEmail,
-        },
-        traceable: true,
-      }),
+      body: JSON.stringify(paymentBody),
     });
 
+    const paymentText = await paymentResponse.text();
+    console.log('Payment response:', paymentText);
+
     if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text();
-      console.error('Payment creation failed:', errorText);
+      console.error('Payment creation failed:', paymentText);
       throw new Error('Falha ao criar pagamento PIX');
     }
 
-    const paymentData = await paymentResponse.json();
+    const paymentData = JSON.parse(paymentText);
 
-    console.log('Payment created successfully:', paymentData.idTransaction);
+    console.log('Payment data parsed:', JSON.stringify(paymentData));
 
     return new Response(
       JSON.stringify({
