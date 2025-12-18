@@ -120,10 +120,14 @@
   }
 
   .stats-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 bg-secondary text-foreground rounded-full text-sm font-medium;
+    @apply inline-flex items-center gap-1.5 bg-muted/50 px-2.5 py-1.5 rounded-full text-xs text-muted-foreground;
   }
 
   .location-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 text-primary rounded-full text-sm font-medium;
+    @apply inline-flex items-center gap-1.5 bg-red-500/10 px-2.5 py-1.5 rounded-full text-xs text-red-400;
+  }
+
+  .header-panel {
+    @apply bg-card/50 backdrop-blur-sm border border-border rounded-xl p-4;
   }
 }

@@ -38,31 +38,30 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border py-4">
-        <h1 className="text-2xl font-bold text-center text-foreground">
-          🇧🇷 Amigos BR
-        </h1>
-      </header>
-
-      {/* Stats Section */}
+      {/* Header Panel */}
       <section className="container mx-auto px-4 py-4">
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="stats-badge">
-            <Users className="w-4 h-4 text-primary" />
-            <span>20.458 inscritos</span>
-          </div>
+        <div className="header-panel max-w-sm mx-auto">
+          <h1 className="text-xl font-bold text-center text-foreground mb-3">
+            🇧🇷 Amigos BR
+          </h1>
+          
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="stats-badge">
+              <Users className="w-4 h-4 text-primary" />
+              <span>20.458 inscritos</span>
+            </div>
 
-          <div className="location-badge">
-            <MapPin className="w-4 h-4" />
-            {loading ? (
-              <span className="flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Detectando...
-              </span>
-            ) : (
-              <span>{city}</span>
-            )}
+            <div className="location-badge">
+              <MapPin className="w-4 h-4" />
+              {loading ? (
+                <span className="flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Detectando...
+                </span>
+              ) : (
+                <span>{city}</span>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -81,6 +80,7 @@ const Index = () => {
               banner={group.banner}
               link={group.link}
               members={group.members}
+              location={city}
             />
           ))}
         </div>
