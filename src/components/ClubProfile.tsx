@@ -83,23 +83,61 @@ const ClubProfile = () => {
             )}
           </div>
 
-          <h1 className="mt-4 text-xl font-bold text-foreground">
+          <h1 className="mt-4 text-2xl font-bold text-foreground">
             {profile?.name || 'Nome do Modelo'}
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          
+          {/* Verified Badge */}
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+              <svg className="w-2.5 h-2.5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <span className="text-xs text-primary font-medium">Perfil Verificado</span>
+          </div>
+        </div>
+
+        {/* Description Card */}
+        <div className="mt-6 bg-card/50 backdrop-blur-sm rounded-2xl p-4 border border-border/50">
+          <p className="text-muted-foreground text-sm text-center leading-relaxed">
             {profile?.bio || 'Conteúdo exclusivo'}
           </p>
+        </div>
 
-          {/* Stats */}
-          <div className="flex gap-8 mt-4 text-center">
-            <div>
-              <p className="text-lg font-bold text-foreground">{profile?.photos_count || 0}</p>
-              <p className="text-xs text-muted-foreground">Fotos</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 text-center">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">{profile?.videos_count || 0}</p>
-              <p className="text-xs text-muted-foreground">Vídeos</p>
+            <p className="text-2xl font-bold text-foreground">{profile?.photos_count || 0}</p>
+            <p className="text-xs text-muted-foreground">Fotos Exclusivas</p>
+          </div>
+          <div className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/50 text-center">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+              <Play className="w-5 h-5 text-primary" />
             </div>
+            <p className="text-2xl font-bold text-foreground">{profile?.videos_count || 0}</p>
+            <p className="text-xs text-muted-foreground">Vídeos Exclusivos</p>
+          </div>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            <span>Pagamento Seguro</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            <span>Acesso Privado</span>
           </div>
         </div>
 
@@ -112,11 +150,39 @@ const ClubProfile = () => {
               <span className="text-primary font-bold">R$ {profile?.price?.toFixed(2).replace('.', ',') || '29,90'}</span>
             </div>
           </button>
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Acesso imediato após o pagamento
+          </p>
+        </div>
+
+        {/* What's Included */}
+        <div className="mt-6 bg-card/30 rounded-2xl p-4 border border-border/30">
+          <p className="text-sm font-medium text-foreground mb-3 text-center">O que você vai receber:</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>Acesso a todas as fotos e vídeos</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>Conteúdo exclusivo e privado</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <svg className="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>Atualizações frequentes</span>
+            </div>
+          </div>
         </div>
 
         {/* Preview Gallery */}
         <div className="mt-8">
-          <p className="text-sm text-muted-foreground mb-3">Prévia</p>
+          <p className="text-sm text-muted-foreground mb-3">Prévia do conteúdo</p>
           <div className="grid grid-cols-3 gap-1.5">
             {galleryItems.length > 0 ? (
               galleryItems.map((item) => (
@@ -146,7 +212,6 @@ const ClubProfile = () => {
                 </div>
               ))
             ) : (
-              // Placeholder items when no gallery
               [...Array(6)].map((_, i) => (
                 <div 
                   key={i}
