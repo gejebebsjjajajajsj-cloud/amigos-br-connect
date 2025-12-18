@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Lock, Play, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import PaymentModal from './PaymentModal';
 
 interface ClubProfile {
   id: string;
@@ -25,6 +26,7 @@ const ClubProfile = () => {
   const [profile, setProfile] = useState<ClubProfile | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,7 +145,10 @@ const ClubProfile = () => {
 
         {/* Purchase Button */}
         <div className="mt-6">
-          <button className="w-full relative group overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-orange-400 p-[2px] transition-all hover:scale-[1.02] active:scale-[0.98]">
+          <button 
+            onClick={() => setShowPayment(true)}
+            className="w-full relative group overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-orange-400 p-[2px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
             <div className="relative flex items-center justify-center gap-2 rounded-2xl bg-background px-6 py-4 transition-all group-hover:bg-background/80">
               <Sparkles className="w-5 h-5 text-primary" />
               <span className="font-bold text-foreground">{profile?.button_text || 'Desbloquear'}</span>
@@ -154,6 +159,14 @@ const ClubProfile = () => {
             Acesso imediato após o pagamento
           </p>
         </div>
+
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPayment}
+          onClose={() => setShowPayment(false)}
+          price={profile?.price || 29.90}
+          productName={`Acesso VIP - ${profile?.name || 'Conteúdo Exclusivo'}`}
+        />
 
         {/* What's Included */}
         <div className="mt-6 bg-card/30 rounded-2xl p-4 border border-border/30">
