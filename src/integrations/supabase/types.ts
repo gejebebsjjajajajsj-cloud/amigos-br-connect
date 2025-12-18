@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_profile: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          bio: string | null
+          button_text: string | null
+          created_at: string
+          id: string
+          name: string
+          photos_count: number | null
+          price: number
+          updated_at: string
+          videos_count: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
+          button_text?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          photos_count?: number | null
+          price?: number
+          updated_at?: string
+          videos_count?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
+          button_text?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          photos_count?: number | null
+          price?: number
+          updated_at?: string
+          videos_count?: number | null
+        }
+        Relationships: []
+      }
+      gallery_items: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          is_preview: boolean | null
+          thumbnail_url: string | null
+          type: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_preview?: boolean | null
+          thumbnail_url?: string | null
+          type: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_preview?: boolean | null
+          thumbnail_url?: string | null
+          type?: string
+          url?: string
+        }
+        Relationships: []
+      }
       groups: {
         Row: {
           banner_url: string | null
