@@ -12,9 +12,11 @@ interface GroupCardProps {
 const GroupCard = ({ name, banner, link, members, location }: GroupCardProps) => {
   return (
     <div className="group-card">
-      <div className="group-banner">
-        <img src={banner} alt={name} className="w-full h-full object-cover" />
-      </div>
+      {banner && (
+        <div className="w-full overflow-hidden rounded-t-2xl">
+          <img src={banner} alt={name} className="w-full h-auto" />
+        </div>
+      )}
       <div className="p-3">
         <h3 className="text-sm font-semibold text-foreground">{name}</h3>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">

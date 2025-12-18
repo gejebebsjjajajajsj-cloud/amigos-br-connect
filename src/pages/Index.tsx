@@ -1,41 +1,35 @@
+import { useState, useEffect } from 'react';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { supabase } from '@/integrations/supabase/client';
 import GroupCard from '@/components/GroupCard';
 import { Users, MapPin, Loader2 } from 'lucide-react';
-import banner1 from '@/assets/banner1.jpg';
-import banner2 from '@/assets/banner2.jpg';
-import banner3 from '@/assets/banner3.jpg';
-import banner4 from '@/assets/banner4.jpg';
-import banner5 from '@/assets/banner5.jpg';
 
-const groups = [
-  {
-    name: 'Amigos BR - Geral',
-    banner: banner5,
-    link: 'https://t.me/+exemplo1',
-    members: '5.2K',
-  },
-  {
-    name: 'Amigos BR - Bate-Papo',
-    banner: banner2,
-    link: 'https://t.me/+exemplo2',
-    members: '3.8K',
-  },
-  {
-    name: 'Amigos BR - Encontros',
-    banner: banner3,
-    link: 'https://t.me/+exemplo3',
-    members: '2.1K',
-  },
-  {
-    name: 'Amigos BR - Noturno',
-    banner: banner4,
-    link: 'https://t.me/+exemplo4',
-    members: '4.5K',
-  },
-];
+interface Group {
+  id: string;
+  name: string;
+  link: string;
+  banner_url: string | null;
+  members: string | null;
+}
 
 const Index = () => {
-  const { city, loading } = useGeolocation();
+  const { city, loading: geoLoading } = useGeolocation();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const { data } = await supabase
+        .from('groups')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      setGroups(data || []);
+      setLoading(false);
+    };
+
+    fetchGroups();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,7 +48,7 @@ const Index = () => {
 
             <div className="location-badge">
               <MapPin className="w-4 h-4" />
-              {loading ? (
+              {geoLoading ? (
                 <span className="flex items-center gap-1">
                   <Loader2 className="w-3 h-3 animate-spin" />
                   Detectando...
@@ -73,18 +67,28 @@ const Index = () => {
           Grupos Disponíveis
         </h2>
         
-        <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
-          {groups.map((group, index) => (
-            <GroupCard
-              key={index}
-              name={group.name}
-              banner={group.banner}
-              link={group.link}
-              members={group.members}
-              location={city}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : groups.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            Nenhum grupo disponível no momento
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
+            {groups.map((group) => (
+              <GroupCard
+                key={group.id}
+                name={group.name}
+                banner={group.banner_url || ''}
+                link={group.link}
+                members={group.members || undefined}
+                location={city}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Footer */}
