@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, Save, LogOut, Trash2, Image, Video, Home, Link2, Plus, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Upload, Save, LogOut, Trash2, Image, Video, Home, Link2 } from 'lucide-react';
 
 interface ClubProfile {
   id: string;
@@ -20,7 +20,6 @@ interface ClubProfile {
   deliverable_link: string | null;
   photos_count: number;
   videos_count: number;
-  slug: string | null;
 }
 
 interface GalleryItem {
@@ -36,14 +35,12 @@ const Admin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profiles, setProfiles] = useState<ClubProfile[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<ClubProfile | null>(null);
+  const [profile, setProfile] = useState<ClubProfile | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [view, setView] = useState<'list' | 'edit'>('list');
 
   useEffect(() => {
     checkAuth();
@@ -56,6 +53,7 @@ const Admin = () => {
       return;
     }
 
+    // Check if user has admin role
     const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
@@ -71,90 +69,29 @@ const Admin = () => {
     }
 
     setIsAdmin(true);
-    fetchProfiles();
+    fetchData();
   };
 
-  const fetchProfiles = async () => {
-    const { data } = await supabase
-      .from('club_profile')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const fetchData = async () => {
+    const [profileRes, galleryRes] = await Promise.all([
+      supabase.from('club_profile').select('*').limit(1).maybeSingle(),
+      supabase.from('gallery_items').select('*').order('display_order')
+    ]);
 
-    if (data) {
-      setProfiles(data.map(p => ({
-        ...p,
-        button_color: p.button_color || '#f97316',
-        deliverable_link: p.deliverable_link || null
-      })));
+    if (profileRes.data) {
+      setProfile({
+        ...profileRes.data,
+        button_color: profileRes.data.button_color || '#f97316',
+        deliverable_link: profileRes.data.deliverable_link || null
+      });
     }
+    if (galleryRes.data) setGalleryItems(galleryRes.data);
     setLoading(false);
-  };
-
-  const fetchGalleryItems = async () => {
-    const { data } = await supabase
-      .from('gallery_items')
-      .select('*')
-      .order('display_order');
-    if (data) setGalleryItems(data);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
-  };
-
-  const handleCreateProfile = async () => {
-    const slug = `modelo-${Date.now()}`;
-    const { data, error } = await supabase
-      .from('club_profile')
-      .insert({
-        name: 'Novo Perfil',
-        bio: 'Descrição do perfil',
-        price: 29.90,
-        slug
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast.error('Erro ao criar perfil');
-      return;
-    }
-
-    if (data) {
-      const newProfile = {
-        ...data,
-        button_color: data.button_color || '#f97316',
-        deliverable_link: data.deliverable_link || null
-      };
-      setProfiles([newProfile, ...profiles]);
-      setSelectedProfile(newProfile);
-      setView('edit');
-      toast.success('Perfil criado! Configure o slug da URL.');
-    }
-  };
-
-  const handleSelectProfile = async (profile: ClubProfile) => {
-    setSelectedProfile(profile);
-    setView('edit');
-    await fetchGalleryItems();
-  };
-
-  const handleDeleteProfile = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este perfil?')) return;
-    
-    const { error } = await supabase
-      .from('club_profile')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast.error('Erro ao excluir perfil');
-      return;
-    }
-
-    setProfiles(profiles.filter(p => p.id !== id));
-    toast.success('Perfil excluído!');
   };
 
   const uploadFile = async (file: File, folder: string) => {
@@ -177,7 +114,7 @@ const Admin = () => {
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file || !selectedProfile) return;
+    if (!file || !profile) return;
 
     setUploadingBanner(true);
     try {
@@ -185,10 +122,10 @@ const Admin = () => {
       const { error } = await supabase
         .from('club_profile')
         .update({ banner_url: url })
-        .eq('id', selectedProfile.id);
+        .eq('id', profile.id);
 
       if (error) throw error;
-      setSelectedProfile({ ...selectedProfile, banner_url: url });
+      setProfile({ ...profile, banner_url: url });
       toast.success('Banner atualizado!');
     } catch (err: any) {
       toast.error(err?.message || 'Erro ao fazer upload do banner');
@@ -200,7 +137,7 @@ const Admin = () => {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file || !selectedProfile) return;
+    if (!file || !profile) return;
 
     setUploadingAvatar(true);
     try {
@@ -208,10 +145,10 @@ const Admin = () => {
       const { error } = await supabase
         .from('club_profile')
         .update({ avatar_url: url })
-        .eq('id', selectedProfile.id);
+        .eq('id', profile.id);
 
       if (error) throw error;
-      setSelectedProfile({ ...selectedProfile, avatar_url: url });
+      setProfile({ ...profile, avatar_url: url });
       toast.success('Foto de perfil atualizada!');
     } catch (err: any) {
       toast.error(err?.message || 'Erro ao fazer upload da foto');
@@ -266,41 +203,27 @@ const Admin = () => {
   };
 
   const handleSaveProfile = async () => {
-    if (!selectedProfile) return;
-
-    // Validate slug
-    const slugRegex = /^[a-z0-9-]+$/;
-    if (selectedProfile.slug && !slugRegex.test(selectedProfile.slug)) {
-      toast.error('O slug deve conter apenas letras minúsculas, números e hífens');
-      return;
-    }
+    if (!profile) return;
 
     setSaving(true);
     const { error } = await supabase
       .from('club_profile')
       .update({
-        name: selectedProfile.name,
-        bio: selectedProfile.bio,
-        price: selectedProfile.price,
-        button_text: selectedProfile.button_text,
-        button_color: selectedProfile.button_color,
-        deliverable_link: selectedProfile.deliverable_link,
-        photos_count: selectedProfile.photos_count,
-        videos_count: selectedProfile.videos_count,
-        slug: selectedProfile.slug
+        name: profile.name,
+        bio: profile.bio,
+        price: profile.price,
+        button_text: profile.button_text,
+        button_color: profile.button_color,
+        deliverable_link: profile.deliverable_link,
+        photos_count: profile.photos_count,
+        videos_count: profile.videos_count
       })
-      .eq('id', selectedProfile.id);
+      .eq('id', profile.id);
 
     if (error) {
-      if (error.code === '23505') {
-        toast.error('Este slug já está em uso. Escolha outro.');
-      } else {
-        toast.error('Erro ao salvar');
-      }
+      toast.error('Erro ao salvar');
     } else {
       toast.success('Perfil salvo!');
-      // Update in list
-      setProfiles(profiles.map(p => p.id === selectedProfile.id ? selectedProfile : p));
     }
     setSaving(false);
   };
@@ -317,115 +240,16 @@ const Admin = () => {
     return null;
   }
 
-  // Profile List View
-  if (view === 'list') {
-    return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b border-border p-4 flex items-center justify-between">
-          <h1 className="text-lg font-bold text-foreground">Painel Admin</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/')}>
-              <Home className="w-4 h-4 mr-2" />
-              Site
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
-          </div>
-        </header>
-
-        <main className="max-w-2xl mx-auto p-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-foreground">Meus Perfis</h2>
-            <Button onClick={handleCreateProfile} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Perfil
-            </Button>
-          </div>
-
-          {profiles.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <p>Nenhum perfil criado ainda.</p>
-              <Button onClick={handleCreateProfile} className="mt-4">
-                <Plus className="w-4 h-4 mr-2" />
-                Criar Primeiro Perfil
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {profiles.map((profile) => (
-                <div
-                  key={profile.id}
-                  className="bg-card border border-border rounded-xl p-4 flex items-center gap-4"
-                >
-                  <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-border flex-shrink-0">
-                    {profile.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
-                        ?
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-foreground truncate">{profile.name}</h3>
-                    <p className="text-xs text-muted-foreground truncate">
-                      /{profile.slug || 'sem-slug'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {profile.slug && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => window.open(`/${profile.slug}`, '_blank')}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSelectProfile(profile)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteProfile(profile.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
-    );
-  }
-
-  // Profile Edit View
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
       <header className="border-b border-border p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setView('list')}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h1 className="text-lg font-bold text-foreground">Editar Perfil</h1>
-        </div>
+        <h1 className="text-lg font-bold text-foreground">Painel Admin</h1>
         <div className="flex gap-2">
-          {selectedProfile?.slug && (
-            <Button variant="outline" size="sm" onClick={() => window.open(`/${selectedProfile.slug}`, '_blank')}>
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Ver Perfil
-            </Button>
-          )}
+          <Button variant="outline" size="sm" onClick={() => navigate('/')}>
+            <Home className="w-4 h-4 mr-2" />
+            Site
+          </Button>
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" />
             Sair
@@ -434,22 +258,6 @@ const Admin = () => {
       </header>
 
       <main className="max-w-2xl mx-auto p-4 space-y-8">
-        {/* Slug (URL) */}
-        <section className="space-y-3 bg-card/50 border border-primary/20 rounded-xl p-4">
-          <div className="flex items-center gap-2">
-            <Link2 className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">URL do Perfil</h2>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Este é o endereço único do perfil. Ex: seusite.com/<strong>{selectedProfile?.slug || 'nome-modelo'}</strong>
-          </p>
-          <Input
-            value={selectedProfile?.slug || ''}
-            onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') } : null)}
-            placeholder="nome-da-modelo"
-          />
-        </section>
-
         {/* Banner Upload */}
         <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
@@ -472,14 +280,18 @@ const Admin = () => {
           </div>
 
           <div className="relative h-40 bg-card rounded-xl overflow-hidden border border-border">
-            {selectedProfile?.banner_url ? (
-              <img src={selectedProfile.banner_url} alt="Banner do clube" className="w-full h-full object-cover" />
+            {profile?.banner_url ? (
+              <img src={profile.banner_url} alt="Banner do clube" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                 Sem banner
               </div>
             )}
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            Se der erro, tente uma imagem menor (ex: JPG/PNG).
+          </p>
         </section>
 
         {/* Avatar Upload */}
@@ -487,8 +299,8 @@ const Admin = () => {
           <h2 className="text-sm font-semibold text-foreground">Foto de Perfil</h2>
           <div className="flex items-center gap-4">
             <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-border">
-              {selectedProfile?.avatar_url ? (
-                <img src={selectedProfile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-card text-muted-foreground text-xs">
                   Sem foto
@@ -511,8 +323,8 @@ const Admin = () => {
             <Label htmlFor="name">Nome da Modelo</Label>
             <Input
               id="name"
-              value={selectedProfile?.name || ''}
-              onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, name: e.target.value } : null)}
+              value={profile?.name || ''}
+              onChange={(e) => setProfile(profile ? { ...profile, name: e.target.value } : null)}
             />
           </div>
 
@@ -520,8 +332,8 @@ const Admin = () => {
             <Label htmlFor="bio">Descrição</Label>
             <Textarea
               id="bio"
-              value={selectedProfile?.bio || ''}
-              onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, bio: e.target.value } : null)}
+              value={profile?.bio || ''}
+              onChange={(e) => setProfile(profile ? { ...profile, bio: e.target.value } : null)}
               rows={2}
             />
           </div>
@@ -531,8 +343,8 @@ const Admin = () => {
               <Label htmlFor="button_text">Nome do Botão</Label>
               <Input
                 id="button_text"
-                value={selectedProfile?.button_text || ''}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, button_text: e.target.value } : null)}
+                value={profile?.button_text || ''}
+                onChange={(e) => setProfile(profile ? { ...profile, button_text: e.target.value } : null)}
                 placeholder="Ex: Desbloquear"
               />
             </div>
@@ -542,8 +354,8 @@ const Admin = () => {
                 id="price"
                 type="number"
                 step="0.01"
-                value={selectedProfile?.price || 0}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, price: parseFloat(e.target.value) } : null)}
+                value={profile?.price || 0}
+                onChange={(e) => setProfile(profile ? { ...profile, price: parseFloat(e.target.value) } : null)}
               />
             </div>
           </div>
@@ -554,19 +366,19 @@ const Admin = () => {
               <input
                 id="button_color"
                 type="color"
-                value={selectedProfile?.button_color || '#f97316'}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, button_color: e.target.value } : null)}
+                value={profile?.button_color || '#f97316'}
+                onChange={(e) => setProfile(profile ? { ...profile, button_color: e.target.value } : null)}
                 className="w-12 h-10 rounded-lg cursor-pointer border border-border"
               />
               <Input
-                value={selectedProfile?.button_color || '#f97316'}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, button_color: e.target.value } : null)}
+                value={profile?.button_color || '#f97316'}
+                onChange={(e) => setProfile(profile ? { ...profile, button_color: e.target.value } : null)}
                 placeholder="#f97316"
                 className="flex-1"
               />
               <div 
                 className="h-10 px-4 rounded-lg flex items-center justify-center text-white text-sm font-medium"
-                style={{ backgroundColor: selectedProfile?.button_color || '#f97316' }}
+                style={{ backgroundColor: profile?.button_color || '#f97316' }}
               >
                 Preview
               </div>
@@ -579,8 +391,8 @@ const Admin = () => {
               <Input
                 id="photos_count"
                 type="number"
-                value={selectedProfile?.photos_count || 0}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, photos_count: parseInt(e.target.value) } : null)}
+                value={profile?.photos_count || 0}
+                onChange={(e) => setProfile(profile ? { ...profile, photos_count: parseInt(e.target.value) } : null)}
               />
             </div>
             <div className="space-y-2">
@@ -588,8 +400,8 @@ const Admin = () => {
               <Input
                 id="videos_count"
                 type="number"
-                value={selectedProfile?.videos_count || 0}
-                onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, videos_count: parseInt(e.target.value) } : null)}
+                value={profile?.videos_count || 0}
+                onChange={(e) => setProfile(profile ? { ...profile, videos_count: parseInt(e.target.value) } : null)}
               />
             </div>
           </div>
@@ -605,8 +417,8 @@ const Admin = () => {
             Link que será mostrado ao cliente após confirmar o pagamento (ex: grupo do Telegram/WhatsApp)
           </p>
           <Input
-            value={selectedProfile?.deliverable_link || ''}
-            onChange={(e) => setSelectedProfile(selectedProfile ? { ...selectedProfile, deliverable_link: e.target.value } : null)}
+            value={profile?.deliverable_link || ''}
+            onChange={(e) => setProfile(profile ? { ...profile, deliverable_link: e.target.value } : null)}
             placeholder="https://t.me/seugrupo ou https://chat.whatsapp.com/..."
           />
         </section>
