@@ -27,6 +27,7 @@ export type Database = {
           name: string
           photos_count: number | null
           price: number
+          slug: string | null
           updated_at: string
           videos_count: number | null
         }
@@ -42,6 +43,7 @@ export type Database = {
           name?: string
           photos_count?: number | null
           price?: number
+          slug?: string | null
           updated_at?: string
           videos_count?: number | null
         }
@@ -57,6 +59,7 @@ export type Database = {
           name?: string
           photos_count?: number | null
           price?: number
+          slug?: string | null
           updated_at?: string
           videos_count?: number | null
         }

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Lock, Play, Sparkles, Camera, Film } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PaymentModal from './PaymentModal';
 
-interface ClubProfile {
+interface ClubProfileData {
   id: string;
   name: string;
   bio: string;
@@ -15,6 +16,7 @@ interface ClubProfile {
   deliverable_link: string | null;
   photos_count: number;
   videos_count: number;
+  slug: string | null;
 }
 
 interface GalleryItem {
@@ -24,37 +26,68 @@ interface GalleryItem {
   is_preview: boolean;
 }
 
-const ClubProfile = () => {
-  const [profile, setProfile] = useState<ClubProfile | null>(null);
+interface ClubProfileProps {
+  slug?: string;
+}
+
+const ClubProfile = ({ slug }: ClubProfileProps) => {
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<ClubProfileData | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
+      let profileQuery = supabase.from('club_profile').select('*');
+      
+      if (slug) {
+        profileQuery = profileQuery.eq('slug', slug);
+      }
+      
       const [profileRes, galleryRes] = await Promise.all([
-        supabase.from('club_profile').select('*').single(),
+        profileQuery.maybeSingle(),
         supabase.from('gallery_items').select('*').eq('is_preview', true).order('display_order').limit(6)
       ]);
 
-      if (profileRes.data) {
-        setProfile({
-          ...profileRes.data,
-          button_color: profileRes.data.button_color || '#f97316',
-          deliverable_link: profileRes.data.deliverable_link || null
-        });
+      if (!profileRes.data) {
+        setNotFound(true);
+        setLoading(false);
+        return;
       }
+
+      setProfile({
+        ...profileRes.data,
+        button_color: profileRes.data.button_color || '#f97316',
+        deliverable_link: profileRes.data.deliverable_link || null
+      });
       if (galleryRes.data) setGalleryItems(galleryRes.data);
       setLoading(false);
     };
 
     fetchData();
-  }, []);
+  }, [slug]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+        <h1 className="text-2xl font-bold text-foreground">Perfil não encontrado</h1>
+        <p className="text-muted-foreground text-center">O perfil que você está procurando não existe.</p>
+        <button
+          onClick={() => navigate('/')}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+        >
+          Voltar ao início
+        </button>
       </div>
     );
   }
